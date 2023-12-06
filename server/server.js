@@ -40,5 +40,5 @@ app.use("/user", userRoutes);
 
 app.listen(PORT, function () {
   console.log(`Server Runs Perfectly at http://localhost:${PORT}`);
-});
- 
+}); 
+   

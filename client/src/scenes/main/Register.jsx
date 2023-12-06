@@ -9,7 +9,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 function Register() {
-  const navigate = useNavigate();
+  const navigate = useNavigate();                                      
 
   const [formData, setFormData] = useState({
     latitude: '',
@@ -86,7 +86,7 @@ function Register() {
         .catch((err) => {
           toast.error(err.response.data.message);
         });
-    }
+    } 
   };
   return (
     <Container>

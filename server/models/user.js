@@ -28,6 +28,11 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
+    role: {
+      type: String,
+      enum: ['reliefCenter', 'collectionCenter'], // If there are specific roles
+      default: 'collectionCenter', // Default value if not specified
+    },
   },
   { timestamps: true }
 );

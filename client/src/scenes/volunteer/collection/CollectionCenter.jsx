@@ -33,8 +33,8 @@ function ReliefCenter() {
   // demo data
   const columns = [
     { field: '_id', headerName: 'ID', width: 300 },
-    { field: 'CenterName', headerName: 'First name', width: 300 },
-    { field: 'Phone', headerName: 'Last name', width: 300 },
+    { field: 'CenterName', headerName: 'Center', width: 300 },
+    { field: 'Phone', headerName: 'Help Line', width: 300 },
     { field: 'Address', headerName: 'Address', width: 300, hideable: false, hide: true },
     {
       field: 'action',

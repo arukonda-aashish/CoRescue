@@ -1,25 +1,25 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+  const bcrypt = require("bcryptjs");
+  const jwt = require("jsonwebtoken");
 
-// Load User model
-const User = require("../models/user");
-// Load input validation
-const SignupValidation = require("../validator/SignupValidation");
-const SigninValidation = require("../validator/SigninValidation");
+  // Load User model
+  const User = require("../models/user");
+  // Load input validation
+  const SignupValidation = require("../validator/SignupValidation");
+  const SigninValidation = require("../validator/SigninValidation");
 
-module.exports = {
-  signup: async (req, res) => {
-    const { latitude, longitude, code, email, password, phoneNumber } = req.body;
-    const { errors, isValid } = SignupValidation(req.body);
+  module.exports = {
+    signup: async (req, res) => {
+      const { latitude, longitude, code, email, password, phoneNumber, role } = req.body; // Include 'role' here
+      const { errors, isValid } = SignupValidation(req.body);
 
-    try {
-      if (!isValid) {
-        res.status(404).json(errors);
-      } else {
-        await User.findOne({ email }).then(async (exist) => {
+      try {
+        if (!isValid) {
+          return res.status(404).json(errors);
+        } else {
+          const exist = await User.findOne({ email });
           if (exist) {
             errors.email = "Email already in use";
-            res.status(404).json({ message: "Email is already in use", errors });
+            return res.status(404).json({ message: "Email is already in use", errors });
           } else {
             const hashedpassword = bcrypt.hashSync(password, 8);
             const result = await User.create({
@@ -29,94 +29,92 @@ module.exports = {
               code,
               email,
               phoneNumber,
+              role, // Include 'role' in user creation
             });
-            res.status(201).json({ message: "Account Created" });
+            return res.status(201).json({ message: "Account Created" });
           }
+        }
+      } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: 'Server Error' });
+      }
+    },
+
+    signin: async (req, res) => {
+      const { email, password } = req.body;
+      const { errors, isValid } = SigninValidation(req.body);
+
+      try {
+        if (!isValid) {
+          return res.status(404).json(errors);
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+          errors.email = "Email does not exist! Please enter the correct Email or create an account";
+          return res.status(404).json(errors);
+        }
+
+        const passwordMatch = bcrypt.compareSync(password, user.password);
+
+        if (!passwordMatch) {
+          errors.password = "Wrong Password";
+          return res.status(404).json({ message: 'Password not matched', errors });
+        }
+
+        const token = jwt.sign({ _id: user._id, role: user.role }, "sooraj_DOING_GOOD", {
+          expiresIn: "8h",
+        });
+
+        const options = {
+          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+          httpOnly: true,
+          sameSite: "lax",
+        };
+
+        const data = {
+          id: user._id
+        };
+
+        return res.status(201).json({
+          token,
+          role: user.role,
+          userID: user._id,
+          message: 'Logged In Successfully'
+        });
+      } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: 'Server Error' });
+      }
+    },
+
+    verifyToken: async (req, res) => {
+      try {
+        const token = req.body.token;
+        const decoded = jwt.verify(token, "sooraj_DOING_GOOD")
+        return res.status(200).json(decoded);
+      } catch (error) {
+        return res.status(401).json({
+          message: 'Auth Failed'
         });
       }
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).json({ message: 'Server Error' })
-    }
-  },
+    },
 
-  signin: async (req, res) => {
-    const { email, password } = req.body;
-    const { errors, isValid } = SigninValidation(req.body);
-
-    try {
-      if (!isValid) {
-        res.status(404).json(errors);
-      } else {
-        await User.findOne({ email }).then(async (user) => {
-          if (!user) {
-            errors.email =
-              "Email does not exist ! please Enter the right Email or You can make account";
-            res.status(404).json(errors);
-          }
-          // Compare sent in password with found user hashed password
-          const passwordMatch = bcrypt.compareSync(password, user.password);
-          if (!passwordMatch) {
-            errors.password = "Wrong Password";
-            res.status(404).json({ message: 'Password not matched', errors });
-          } else {
-            // generating a token and storing it in a cookie
-            const token = jwt.sign({ _id: user._id, role: user.role }, "sooraj_DOING_GOOD", {
-              expiresIn: "8h",
-            });
-            const options = {
-              expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-              httpOnly: true,
-              sameSite: "lax",
-            };
-
-            const data = {
-              id: user._id
-            }
-            res.status(201).json({
-              token,
-              role: user.role,
-              userID: user._id,
-              message: 'Logged In Succesfully'
-            });
-          }
+    getUser: async (req, res) => {
+      const id = req.params.id;
+      try {
+        const userdata = await User.findById(id);
+        const data = {
+          firstName: userdata.firstName,
+          LastName: userdata.lastNameName,
+          email: userdata.email,
+        }
+        return res.status(200).json(data);
+      } catch (error) {
+        return res.status(401).json({
+          message: 'Get Req Failed'
         });
       }
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).json({ message: 'Server Error' })
-    }
-  },
-
-  verifyToken: async (req, res) => {
-    try {
-      const token = req.body.token;
-      const decoded = jwt.verify(token, "sooraj_DOING_GOOD")
-      res.status(200).json(decoded)
-
-    } catch (error) {
-      return res.status(401).json({
-        message: 'Auth Failed'
-      });
-    }
-
-  },
-
-  getUser: async (req, res) => {
-    const id = req.params.id;
-    try {
-      const userdata = await User.findById(id);
-      const data = {
-        firstName: userdata.firstName,
-        LastName: userdata.lastNameName,
-        email: userdata.email,
-      }
-      res.status(200).json(data)
-
-    } catch (error) {
-      return res.status(401).json({
-        message: 'Get Req Failed'
-      });
     }
   }
-}
