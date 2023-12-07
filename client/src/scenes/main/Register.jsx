@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Box, Grid, MenuItem } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import { Card } from '@mui/material';
@@ -11,16 +11,23 @@ import { toast } from 'react-toastify';
 function Register() {
   const navigate = useNavigate();                                      
 
-  const [formData, setFormData] = useState({
-    latitude: '',
-    longitude: '',
-    email: '',
-    phoneNumber: '',
-    password: '',
-    confirmPassword: '',
-    code: '',
-    role: '',
+  const [formData, setFormData] = useState(() => {
+    // Check if there's any saved form data in local storage and use it as initial state
+    const savedFormData = localStorage.getItem('registrationFormData');
+    return savedFormData ? JSON.parse(savedFormData) : {
+      latitude: '',
+      longitude: '',
+      email: '',
+      phoneNumber: '',
+      password: '',
+      confirmPassword: '',
+      code: '',
+      role: '',
+    };
   });
+  useEffect(() => {
+    localStorage.setItem('registrationFormData', JSON.stringify(formData));
+  }, [formData]);
 
   const [formErrors, setFormErrors] = useState({});
 

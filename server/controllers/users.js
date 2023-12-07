@@ -92,15 +92,24 @@
     verifyToken: async (req, res) => {
       try {
         const token = req.body.token;
-        const decoded = jwt.verify(token, "sooraj_DOING_GOOD")
+        if (!token) {
+          return res.status(401).json({
+            message: 'No token provided',
+          });
+        }
+        const decoded = jwt.verify(token, "sooraj_DOING_GOOD");
         return res.status(200).json(decoded);
       } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+          return res.status(401).json({
+            message: 'Token expired',
+          });
+        }
         return res.status(401).json({
-          message: 'Auth Failed'
+          message: 'Invalid token',
         });
       }
     },
-
     getUser: async (req, res) => {
       const id = req.params.id;
       try {
