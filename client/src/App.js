@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import WeatherApp from "./scenes/main/LandingPage";
-import FloodPredict from "./scenes/js/App";
+//import FloodPredict from "./scenes/js/App";
 import Register from "./scenes/main/Register";
 import Login from "./scenes/main/Login";
 import AdminHome from "./scenes/admin/AdminHome";
@@ -15,6 +15,7 @@ import MyCollectionCenter from "./scenes/volunteer/collection/MyCollectionCenter
 import { useEffect } from "react"; // Remove the redundant React import
 import { useDispatch } from "react-redux";
 import { setCollectionCenter, setAdmin, setReliefCenter } from "./store/auth";
+import MapComponent from './components/MapComponents/MapComponents';
 
 function App() {
   axios.defaults.baseURL = "http://localhost:5000";
@@ -42,7 +43,7 @@ function App() {
       <NavBar />
       <SnackBar />
       <Routes>
-        <Route path="/" element={<FloodPredict />} />
+        <Route path="/" element={< MapComponent />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
